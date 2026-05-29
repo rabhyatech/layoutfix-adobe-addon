@@ -1,0 +1,1 @@
+# layoutfix-adobe-addon
