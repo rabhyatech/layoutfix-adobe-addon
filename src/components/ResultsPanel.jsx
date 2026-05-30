@@ -1,10 +1,37 @@
+import { useState, useEffect } from "react";
 import ScoreMeter from "./ScoreMeter";
 import IssueCard from "./IssueCard";
 import "./ResultsPanel.css";
 
-export default function ResultsPanel({ results, previewUrl, onReset }) {
+function MetricBar({ value, color, delay = 0 }) {
+  const [width, setWidth] = useState(0);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setWidth(value), 80 + delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+
   return (
-    <section className="results-panel">
+    <div className="results-panel__metric-bar">
+      <div
+        className="results-panel__metric-fill"
+        style={{ width: `${width}%`, background: color }}
+      />
+    </div>
+  );
+}
+
+export default function ResultsPanel({ results, previewUrl, onReset }) {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    setVisible(false);
+    const timer = requestAnimationFrame(() => setVisible(true));
+    return () => cancelAnimationFrame(timer);
+  }, [results]);
+
+  return (
+    <section className={`results-panel${visible ? " results-panel--visible" : ""}`}>
       <div className="results-panel__header">
         <div>
           <p className="results-panel__eyebrow">Analysis complete</p>
@@ -29,27 +56,30 @@ export default function ResultsPanel({ results, previewUrl, onReset }) {
 
         <div className="results-panel__content">
           <div className="results-panel__score-block">
-            <ScoreMeter score={results.score} label="Overall layout score" size="large" />
+            <ScoreMeter
+              score={results.score}
+              label="Overall layout score"
+              size="large"
+              animate
+              duration={1600}
+            />
             <p className="results-panel__summary">{results.summary}</p>
           </div>
 
           <div className="results-panel__metrics">
             <h3 className="results-panel__section-title">Breakdown</h3>
             <div className="results-panel__metrics-grid">
-              {results.metrics.map((m) => (
-                <div key={m.label} className="results-panel__metric">
+              {results.metrics.map((m, i) => (
+                <div key={m.category} className="results-panel__metric">
                   <ScoreMeter
                     score={m.value}
                     label={m.label}
                     size="small"
                     color={m.color}
+                    animate
+                    duration={1200 + i * 150}
                   />
-                  <div className="results-panel__metric-bar">
-                    <div
-                      className="results-panel__metric-fill"
-                      style={{ width: `${m.value}%`, background: m.color }}
-                    />
-                  </div>
+                  <MetricBar value={m.value} color={m.color} delay={i * 120} />
                 </div>
               ))}
             </div>
@@ -60,8 +90,12 @@ export default function ResultsPanel({ results, previewUrl, onReset }) {
               Issues found ({results.issues.length})
             </h3>
             <ul className="results-panel__issues-list">
-              {results.issues.map((issue) => (
-                <li key={issue.id}>
+              {results.issues.map((issue, i) => (
+                <li
+                  key={issue.id}
+                  className="results-panel__issue-item"
+                  style={{ animationDelay: `${i * 80}ms` }}
+                >
                   <IssueCard issue={issue} />
                 </li>
               ))}
