@@ -1,0 +1,86 @@
+.score-meter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.score-meter__ring-wrap {
+  position: relative;
+  width: 120px;
+  height: 120px;
+}
+
+.score-meter--small .score-meter__ring-wrap {
+  width: 72px;
+  height: 72px;
+}
+
+.score-meter__svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.score-meter__track {
+  stroke: var(--bg-input);
+  stroke-width: 8;
+}
+
+.score-meter--small .score-meter__track,
+.score-meter--small .score-meter__fill {
+  stroke-width: 6;
+}
+
+.score-meter__fill {
+  stroke: var(--purple-bright);
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.score-meter__value-wrap {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.score-meter__value {
+  font-family: var(--font-display);
+  font-weight: 800;
+  line-height: 1;
+  background: linear-gradient(135deg, var(--purple-bright), var(--purple-pale));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.score-meter--large .score-meter__value {
+  font-size: 36px;
+}
+
+.score-meter--small .score-meter__value {
+  font-size: 18px;
+}
+
+.score-meter__grade {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.score-meter__label {
+  font-size: 13px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.score-meter--small .score-meter__label {
+  font-size: 12px;
+}
