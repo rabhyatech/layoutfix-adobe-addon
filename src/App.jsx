@@ -4,6 +4,7 @@ import Hero from "./components/Hero";
 import UploadArea from "./components/UploadArea";
 import AnalyzeButton from "./components/AnalyzeButton";
 import ResultsPanel from "./components/ResultsPanel";
+import AnalyzingOverlay from "./components/AnalyzingOverlay";
 import Footer from "./components/Footer";
 import useAnalyzer from "./hooks/useAnalyzer";
 import "./styles/globals.css";
@@ -27,7 +28,7 @@ export default function App() {
   };
 
   const handleAnalyze = () => {
-    if (uploadedFile) analyze(uploadedFile);
+    if (uploadedFile && !isAnalyzing) analyze(uploadedFile);
   };
 
   const handleReset = () => {
@@ -51,8 +52,13 @@ export default function App() {
               uploadedFile={uploadedFile}
               previewUrl={previewUrl}
               onReset={handleReset}
+              isAnalyzing={isAnalyzing}
             />
-            {error && <p className="app__error">{error}</p>}
+            {error && (
+              <div className="app__error" role="alert">
+                <span aria-hidden="true">⚠</span> {error}
+              </div>
+            )}
             {uploadedFile && (
               <AnalyzeButton onClick={handleAnalyze} isAnalyzing={isAnalyzing} />
             )}
@@ -62,11 +68,18 @@ export default function App() {
           <ResultsPanel
             results={results}
             previewUrl={previewUrl}
+            fileName={uploadedFile?.name}
             onReset={handleReset}
           />
         )}
       </main>
       <Footer />
+      {isAnalyzing && (
+        <AnalyzingOverlay
+          previewUrl={previewUrl}
+          fileName={uploadedFile?.name}
+        />
+      )}
     </div>
   );
 }

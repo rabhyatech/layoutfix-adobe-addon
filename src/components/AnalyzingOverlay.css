@@ -1,0 +1,112 @@
+.analyzing-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(10, 10, 15, 0.88);
+  backdrop-filter: blur(8px);
+  animation: fadeIn 0.25s ease;
+}
+
+.analyzing-overlay__card {
+  width: 100%;
+  max-width: 420px;
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+  border: 1px solid var(--border-mid);
+  box-shadow: var(--shadow-glow);
+  overflow: hidden;
+}
+
+.analyzing-overlay__preview {
+  position: relative;
+  height: 180px;
+  overflow: hidden;
+  background: var(--bg-input);
+}
+
+.analyzing-overlay__preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.6;
+  filter: saturate(0.7);
+}
+
+.analyzing-overlay__scan {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--purple-bright), transparent);
+  box-shadow: 0 0 20px var(--purple-bright);
+  animation: scan 1.8s ease-in-out infinite;
+}
+
+.analyzing-overlay__grid-lines {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(139, 92, 246, 0.15) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(139, 92, 246, 0.15) 1px, transparent 1px);
+  background-size: 24px 24px;
+  pointer-events: none;
+}
+
+.analyzing-overlay__content {
+  padding: 28px 24px 32px;
+  text-align: center;
+}
+
+.analyzing-overlay__spinner {
+  width: 40px;
+  height: 40px;
+  margin: 0 auto 16px;
+  border: 3px solid var(--border-subtle);
+  border-top-color: var(--purple-bright);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.analyzing-overlay__title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.analyzing-overlay__file {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  word-break: break-all;
+}
+
+.analyzing-overlay__step {
+  font-size: 14px;
+  color: var(--purple-glow);
+  min-height: 1.4em;
+  margin-bottom: 16px;
+}
+
+.analyzing-overlay__progress {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--bg-input);
+  overflow: hidden;
+}
+
+.analyzing-overlay__progress-bar {
+  height: 100%;
+  width: 40%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--purple-mid), var(--purple-bright));
+  animation: analyzing-progress 1.6s ease-in-out infinite;
+}
+
+@keyframes analyzing-progress {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(350%); }
+}

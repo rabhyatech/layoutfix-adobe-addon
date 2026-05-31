@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import ScoreMeter from "./ScoreMeter";
 import IssueCard from "./IssueCard";
+import { exportReportAsJson, exportReportAsText } from "../utils/exportReport";
 import "./ResultsPanel.css";
 
 function MetricBar({ value, color, delay = 0 }) {
@@ -21,14 +22,25 @@ function MetricBar({ value, color, delay = 0 }) {
   );
 }
 
-export default function ResultsPanel({ results, previewUrl, onReset }) {
+export default function ResultsPanel({ results, previewUrl, fileName, onReset }) {
   const [visible, setVisible] = useState(false);
+  const [exportMsg, setExportMsg] = useState(null);
 
   useEffect(() => {
     setVisible(false);
     const timer = requestAnimationFrame(() => setVisible(true));
     return () => cancelAnimationFrame(timer);
   }, [results]);
+
+  const handleExport = (format) => {
+    if (format === "json") {
+      exportReportAsJson(results, fileName);
+    } else {
+      exportReportAsText(results, fileName);
+    }
+    setExportMsg(`Report exported as ${format.toUpperCase()}`);
+    setTimeout(() => setExportMsg(null), 3000);
+  };
 
   return (
     <section className={`results-panel${visible ? " results-panel--visible" : ""}`}>
@@ -42,10 +54,27 @@ export default function ResultsPanel({ results, previewUrl, onReset }) {
             </p>
           )}
         </div>
-        <button type="button" className="results-panel__reset" onClick={onReset}>
-          New upload
-        </button>
+        <div className="results-panel__actions">
+          <button
+            type="button"
+            className="results-panel__btn results-panel__btn--secondary"
+            onClick={() => handleExport("txt")}
+          >
+            Export report
+          </button>
+          <button
+            type="button"
+            className="results-panel__btn results-panel__btn--primary"
+            onClick={onReset}
+          >
+            Analyze Another Design
+          </button>
+        </div>
       </div>
+
+      {exportMsg && (
+        <p className="results-panel__toast" role="status">{exportMsg}</p>
+      )}
 
       <div className="results-panel__grid">
         {previewUrl && (
@@ -89,17 +118,44 @@ export default function ResultsPanel({ results, previewUrl, onReset }) {
             <h3 className="results-panel__section-title">
               Issues found ({results.issues.length})
             </h3>
-            <ul className="results-panel__issues-list">
-              {results.issues.map((issue, i) => (
-                <li
-                  key={issue.id}
-                  className="results-panel__issue-item"
-                  style={{ animationDelay: `${i * 80}ms` }}
-                >
-                  <IssueCard issue={issue} />
-                </li>
-              ))}
-            </ul>
+            {results.issues.length === 0 ? (
+              <div className="results-panel__empty">
+                <span className="results-panel__empty-icon" aria-hidden="true">✓</span>
+                <p className="results-panel__empty-title">No issues detected</p>
+                <p className="results-panel__empty-text">
+                  Your layout scored well across spacing, alignment, hierarchy, and contrast.
+                </p>
+              </div>
+            ) : (
+              <ul className="results-panel__issues-list">
+                {results.issues.map((issue, i) => (
+                  <li
+                    key={issue.id}
+                    className="results-panel__issue-item"
+                    style={{ animationDelay: `${i * 80}ms` }}
+                  >
+                    <IssueCard issue={issue} />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <div className="results-panel__footer-actions">
+            <button
+              type="button"
+              className="results-panel__btn results-panel__btn--ghost"
+              onClick={() => handleExport("json")}
+            >
+              Download JSON
+            </button>
+            <button
+              type="button"
+              className="results-panel__btn results-panel__btn--primary results-panel__btn--full-mobile"
+              onClick={onReset}
+            >
+              Analyze Another Design
+            </button>
           </div>
         </div>
       </div>

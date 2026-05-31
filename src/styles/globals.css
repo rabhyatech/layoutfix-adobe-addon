@@ -90,11 +90,25 @@ body {
   padding: 0 24px 120px;
 }
 
+@media (max-width: 640px) {
+  .main {
+    padding: 0 16px 80px;
+  }
+}
+
 .app__error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   text-align: center;
   color: var(--accent-coral);
   font-size: 14px;
   margin: -16px 0 24px;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 107, 107, 0.08);
+  border: 1px solid rgba(255, 107, 107, 0.2);
 }
 
 .sr-only {

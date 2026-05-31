@@ -1,39 +1,95 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import "./UploadArea.css";
 
 const MAX_SIZE = 10 * 1024 * 1024;
-const ACCEPTED = ["image/png", "image/jpeg", "image/webp"];
+const ACCEPTED_TYPES = ["image/png", "image/jpeg", "image/jpg"];
+const ACCEPTED_EXT = [".png", ".jpg", ".jpeg"];
+
+function isAcceptedImage(file) {
+  if (!file) return false;
+  if (ACCEPTED_TYPES.includes(file.type)) return true;
+  const name = file.name.toLowerCase();
+  return ACCEPTED_EXT.some((ext) => name.endsWith(ext));
+}
 
 export default function UploadArea({
   onFileAccepted,
   uploadedFile,
   previewUrl,
   onReset,
+  isAnalyzing = false,
 }) {
   const inputRef = useRef(null);
+  const dragCounter = useRef(0);
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState(null);
 
-  const validateAndAccept = (file) => {
-    if (!file) return;
-    if (!ACCEPTED.includes(file.type)) {
-      setError("Please upload a PNG, JPG, or WebP image.");
-      return;
-    }
-    if (file.size > MAX_SIZE) {
-      setError("File must be under 10 MB.");
-      return;
-    }
-    setError(null);
-    onFileAccepted(file);
-  };
+  const validateAndAccept = useCallback(
+    (file) => {
+      if (!file) return;
+      if (!isAcceptedImage(file)) {
+        setError("Please upload a PNG, JPG, or JPEG image.");
+        return;
+      }
+      if (file.size > MAX_SIZE) {
+        setError("File must be under 10 MB.");
+        return;
+      }
+      setError(null);
+      onFileAccepted(file);
+    },
+    [onFileAccepted]
+  );
 
-  const handleChange = (e) => validateAndAccept(e.target.files?.[0]);
-
-  const handleDrop = (e) => {
+  const handleDragEnter = useCallback((e) => {
     e.preventDefault();
-    setDragOver(false);
-    validateAndAccept(e.dataTransfer.files?.[0]);
+    e.stopPropagation();
+    dragCounter.current += 1;
+    if (e.dataTransfer?.types?.includes("Files")) {
+      setDragOver(true);
+    }
+  }, []);
+
+  const handleDragLeave = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current -= 1;
+    if (dragCounter.current <= 0) {
+      dragCounter.current = 0;
+      setDragOver(false);
+    }
+  }, []);
+
+  const handleDragOver = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = "copy";
+  }, []);
+
+  const handleDrop = useCallback(
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dragCounter.current = 0;
+      setDragOver(false);
+      validateAndAccept(e.dataTransfer.files?.[0]);
+    },
+    [validateAndAccept]
+  );
+
+  useEffect(() => {
+    const prevent = (e) => e.preventDefault();
+    window.addEventListener("dragover", prevent);
+    window.addEventListener("drop", prevent);
+    return () => {
+      window.removeEventListener("dragover", prevent);
+      window.removeEventListener("drop", prevent);
+    };
+  }, []);
+
+  const handleChange = (e) => {
+    validateAndAccept(e.target.files?.[0]);
+    e.target.value = "";
   };
 
   if (uploadedFile && previewUrl) {
@@ -45,11 +101,18 @@ export default function UploadArea({
             alt="Upload preview"
             className="upload-area__preview"
           />
-          <div className="upload-area__scan-line" aria-hidden="true" />
+          {!isAnalyzing && (
+            <div className="upload-area__scan-line" aria-hidden="true" />
+          )}
         </div>
         <div className="upload-area__file-info">
           <span className="upload-area__filename">{uploadedFile.name}</span>
-          <button type="button" className="upload-area__reset" onClick={onReset}>
+          <button
+            type="button"
+            className="upload-area__reset"
+            onClick={onReset}
+            disabled={isAnalyzing}
+          >
             Remove
           </button>
         </div>
@@ -62,16 +125,25 @@ export default function UploadArea({
       <div
         className={`upload-area__dropzone${dragOver ? " upload-area__dropzone--active" : ""}`}
         onClick={() => inputRef.current?.click()}
-        onDragOver={(e) => {
-          e.preventDefault();
-          setDragOver(true);
-        }}
-        onDragLeave={() => setDragOver(false)}
+        onDragEnter={handleDragEnter}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         role="button"
         tabIndex={0}
-        onKeyDown={(e) => e.key === "Enter" && inputRef.current?.click()}
+        aria-label="Upload design image. Drag and drop or click to browse."
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            inputRef.current?.click();
+          }
+        }}
       >
+        {dragOver && (
+          <div className="upload-area__drag-overlay" aria-hidden="true">
+            <span>Drop to upload</span>
+          </div>
+        )}
         <div className="upload-area__icon" aria-hidden="true">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
             <path
@@ -83,17 +155,26 @@ export default function UploadArea({
             />
           </svg>
         </div>
-        <p className="upload-area__label">Drop your design here</p>
-        <p className="upload-area__hint">PNG, JPG, or WebP — max 10 MB</p>
+        <p className="upload-area__label">
+          {dragOver ? "Release to upload" : "Drag & drop your design here"}
+        </p>
+        <p className="upload-area__hint">or click to browse · PNG, JPG, JPEG · max 10 MB</p>
         <input
           ref={inputRef}
           type="file"
-          accept="image/png,image/jpeg,image/webp"
+          accept="image/png,image/jpeg,image/jpg,.png,.jpg,.jpeg"
           className="sr-only"
           onChange={handleChange}
         />
       </div>
-      {error && <p className="upload-area__error">{error}</p>}
+      {!uploadedFile && !error && (
+        <p className="upload-area__empty">No file selected yet</p>
+      )}
+      {error && (
+        <div className="upload-area__error" role="alert">
+          <span aria-hidden="true">⚠</span> {error}
+        </div>
+      )}
     </section>
   );
 }

@@ -3,6 +3,15 @@
   justify-content: center;
   margin-bottom: 48px;
   animation: fadeUp 0.6s 0.2s ease both;
+  padding: 0 8px;
+}
+
+@media (max-width: 640px) {
+  .analyze-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 14px 24px;
+  }
 }
 
 .analyze-btn {
