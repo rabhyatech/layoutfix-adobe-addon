@@ -4,7 +4,8 @@
   z-index: 100;
   display: grid;
   place-items: center;
-  padding: 24px;
+  padding: var(--space-5);
+  padding-bottom: calc(var(--space-5) + env(safe-area-inset-bottom, 0px));
   background: rgba(10, 10, 15, 0.88);
   backdrop-filter: blur(8px);
   animation: fadeIn 0.25s ease;

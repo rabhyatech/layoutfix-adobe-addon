@@ -8,6 +8,8 @@ export default function AnalyzeButton({ onClick, isAnalyzing }) {
         className={`analyze-btn${isAnalyzing ? " analyze-btn--loading" : ""}`}
         onClick={onClick}
         disabled={isAnalyzing}
+        aria-busy={isAnalyzing}
+        aria-label={isAnalyzing ? "Analyzing layout, please wait" : "Analyze layout"}
       >
         {isAnalyzing ? (
           <>
@@ -16,7 +18,9 @@ export default function AnalyzeButton({ onClick, isAnalyzing }) {
           </>
         ) : (
           <>
-            <span className="analyze-btn__icon" aria-hidden="true">✦</span>
+            <span className="analyze-btn__icon" aria-hidden="true">
+              ✦
+            </span>
             Analyze layout
           </>
         )}

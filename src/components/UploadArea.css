@@ -1,5 +1,5 @@
 .upload-area {
-  margin-bottom: 32px;
+  margin-bottom: var(--space-6);
   animation: fadeUp 0.6s 0.1s ease both;
 }
 
@@ -8,7 +8,7 @@
   border: 1.5px dashed var(--border-mid);
   border-radius: var(--radius-lg);
   background: var(--bg-card);
-  padding: 56px 32px;
+  padding: var(--space-7) var(--space-6);
   text-align: center;
   cursor: pointer;
   transition:
@@ -20,7 +20,7 @@
 
 @media (max-width: 640px) {
   .upload-area__dropzone {
-    padding: 40px 20px;
+    padding: var(--space-6) var(--space-4);
   }
 }
 
@@ -53,7 +53,7 @@
   font-weight: 700;
   font-size: 18px;
   color: var(--purple-pale);
-  padding: 12px 24px;
+  padding: var(--space-3) var(--space-5);
   border-radius: var(--radius-md);
   border: 1px solid var(--border-bright);
   background: rgba(20, 20, 31, 0.9);
@@ -62,7 +62,7 @@
 .upload-area__icon {
   width: 52px;
   height: 52px;
-  margin: 0 auto 16px;
+  margin: 0 auto var(--space-4);
   border-radius: var(--radius-md);
   background: rgba(139, 92, 246, 0.12);
   display: grid;
@@ -74,7 +74,13 @@
   font-family: var(--font-display);
   font-weight: 600;
   font-size: 18px;
-  margin-bottom: 6px;
+  margin-bottom: var(--space-2);
+}
+
+@media (max-width: 640px) {
+  .upload-area__label {
+    font-size: 16px;
+  }
 }
 
 .upload-area__hint {
@@ -82,26 +88,69 @@
   font-size: 13px;
 }
 
+.upload-area__empty {
+  margin-top: var(--space-3);
+  padding: var(--space-5);
+  text-align: center;
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+}
+
+.upload-area__empty-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin-bottom: var(--space-3);
+  border-radius: var(--radius-sm);
+  background: rgba(139, 92, 246, 0.08);
+  color: var(--text-muted);
+  font-size: 18px;
+}
+
+.upload-area__empty-title {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: var(--space-1);
+}
+
+.upload-area__empty-text {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
 .upload-area__error {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 12px;
-  padding: 12px 16px;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+  padding: var(--space-3) var(--space-4);
   font-size: 13px;
   color: var(--accent-coral);
-  text-align: center;
   border-radius: var(--radius-sm);
   background: rgba(255, 107, 107, 0.08);
   border: 1px solid rgba(255, 107, 107, 0.2);
+  animation: fadeIn var(--transition-mid) ease;
 }
 
-.upload-area__empty {
-  margin-top: 12px;
-  font-size: 13px;
-  color: var(--text-muted);
-  text-align: center;
+.upload-area__error-icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(255, 107, 107, 0.15);
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.upload-area__error p {
+  line-height: 1.5;
+  text-align: left;
 }
 
 .upload-area__preview-wrap {
@@ -110,6 +159,27 @@
   overflow: hidden;
   border: 1px solid var(--border-subtle);
   background: var(--bg-card);
+  min-height: 200px;
+}
+
+.upload-area__skeleton {
+  position: absolute;
+  inset: 0;
+  background: var(--bg-input);
+  overflow: hidden;
+}
+
+.upload-area__skeleton-shimmer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(139, 92, 246, 0.08) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
 }
 
 .upload-area__preview {
@@ -117,6 +187,22 @@
   width: 100%;
   max-height: 420px;
   object-fit: contain;
+  opacity: 0;
+  transition: opacity var(--transition-mid);
+}
+
+.upload-area__preview--loaded {
+  opacity: 1;
+}
+
+@media (max-width: 640px) {
+  .upload-area__preview {
+    max-height: 280px;
+  }
+
+  .upload-area__preview-wrap {
+    min-height: 160px;
+  }
 }
 
 .upload-area__scan-line {
@@ -134,8 +220,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  margin-top: 12px;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
   flex-wrap: wrap;
 }
 
@@ -153,7 +239,8 @@
   color: var(--text-secondary);
   font-family: var(--font-body);
   font-size: 13px;
-  padding: 6px 14px;
+  padding: var(--space-2) var(--space-4);
+  min-height: 44px;
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: border-color var(--transition-fast), color var(--transition-fast);

@@ -38,7 +38,9 @@ export default function useAnalyzer() {
         })
       );
     } catch {
-      setError("Could not read this image. Try another PNG, JPG, or WebP file.");
+      setError(
+        "We couldn't read this image. Please upload a valid PNG, JPG, or JPEG file under 10 MB."
+      );
     } finally {
       setIsAnalyzing(false);
     }
@@ -50,5 +52,9 @@ export default function useAnalyzer() {
     setError(null);
   }, []);
 
-  return { results, isAnalyzing, error, analyze, reset };
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+
+  return { results, isAnalyzing, error, analyze, reset, clearError };
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { forwardRef, useState, useEffect } from "react";
 import ScoreMeter from "./ScoreMeter";
 import IssueCard from "./IssueCard";
 import { exportReportAsJson, exportReportAsText } from "../utils/exportReport";
@@ -13,7 +13,14 @@ function MetricBar({ value, color, delay = 0 }) {
   }, [value, delay]);
 
   return (
-    <div className="results-panel__metric-bar">
+    <div
+      className="results-panel__metric-bar"
+      role="progressbar"
+      aria-valuenow={width}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-label={`${value} percent`}
+    >
       <div
         className="results-panel__metric-fill"
         style={{ width: `${width}%`, background: color }}
@@ -22,9 +29,13 @@ function MetricBar({ value, color, delay = 0 }) {
   );
 }
 
-export default function ResultsPanel({ results, previewUrl, fileName, onReset }) {
+const ResultsPanel = forwardRef(function ResultsPanel(
+  { results, previewUrl, fileName, onReset },
+  ref
+) {
   const [visible, setVisible] = useState(false);
   const [exportMsg, setExportMsg] = useState(null);
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     setVisible(false);
@@ -32,22 +43,35 @@ export default function ResultsPanel({ results, previewUrl, fileName, onReset })
     return () => cancelAnimationFrame(timer);
   }, [results]);
 
-  const handleExport = (format) => {
-    if (format === "json") {
-      exportReportAsJson(results, fileName);
-    } else {
-      exportReportAsText(results, fileName);
+  const handleExport = async (format) => {
+    setIsExporting(true);
+    try {
+      await new Promise((r) => setTimeout(r, 200));
+      if (format === "json") {
+        exportReportAsJson(results, fileName);
+      } else {
+        exportReportAsText(results, fileName);
+      }
+      setExportMsg(`Report downloaded as ${format === "json" ? "JSON" : "text"}`);
+      setTimeout(() => setExportMsg(null), 4000);
+    } finally {
+      setIsExporting(false);
     }
-    setExportMsg(`Report exported as ${format.toUpperCase()}`);
-    setTimeout(() => setExportMsg(null), 3000);
   };
 
   return (
-    <section className={`results-panel${visible ? " results-panel--visible" : ""}`}>
+    <section
+      ref={ref}
+      className={`results-panel${visible ? " results-panel--visible" : ""}`}
+      aria-labelledby="results-title"
+      tabIndex={-1}
+    >
       <div className="results-panel__header">
         <div>
           <p className="results-panel__eyebrow">Analysis complete</p>
-          <h2 className="results-panel__title">Layout report</h2>
+          <h2 id="results-title" className="results-panel__title">
+            Layout report
+          </h2>
           {results.meta && (
             <p className="results-panel__meta">
               {results.meta.width}×{results.meta.height}px · aspect {results.meta.aspect}
@@ -59,8 +83,10 @@ export default function ResultsPanel({ results, previewUrl, fileName, onReset })
             type="button"
             className="results-panel__btn results-panel__btn--secondary"
             onClick={() => handleExport("txt")}
+            disabled={isExporting}
+            aria-busy={isExporting}
           >
-            Export report
+            {isExporting ? "Exporting…" : "Export report"}
           </button>
           <button
             type="button"
@@ -73,14 +99,16 @@ export default function ResultsPanel({ results, previewUrl, fileName, onReset })
       </div>
 
       {exportMsg && (
-        <p className="results-panel__toast" role="status">{exportMsg}</p>
+        <p className="results-panel__toast" role="status">
+          {exportMsg}
+        </p>
       )}
 
       <div className="results-panel__grid">
         {previewUrl && (
-          <div className="results-panel__preview">
-            <img src={previewUrl} alt="Analyzed design" />
-          </div>
+          <figure className="results-panel__preview">
+            <img src={previewUrl} alt="Analyzed design preview" />
+          </figure>
         )}
 
         <div className="results-panel__content">
@@ -97,9 +125,9 @@ export default function ResultsPanel({ results, previewUrl, fileName, onReset })
 
           <div className="results-panel__metrics">
             <h3 className="results-panel__section-title">Breakdown</h3>
-            <div className="results-panel__metrics-grid">
+            <div className="results-panel__metrics-grid" role="list">
               {results.metrics.map((m, i) => (
-                <div key={m.category} className="results-panel__metric">
+                <div key={m.category} className="results-panel__metric" role="listitem">
                   <ScoreMeter
                     score={m.value}
                     label={m.label}
@@ -119,11 +147,14 @@ export default function ResultsPanel({ results, previewUrl, fileName, onReset })
               Issues found ({results.issues.length})
             </h3>
             {results.issues.length === 0 ? (
-              <div className="results-panel__empty">
-                <span className="results-panel__empty-icon" aria-hidden="true">✓</span>
+              <div className="results-panel__empty" role="status">
+                <span className="results-panel__empty-icon" aria-hidden="true">
+                  ✓
+                </span>
                 <p className="results-panel__empty-title">No issues detected</p>
                 <p className="results-panel__empty-text">
-                  Your layout scored well across spacing, alignment, hierarchy, and contrast.
+                  Your layout scored well across spacing, alignment, hierarchy, and
+                  contrast.
                 </p>
               </div>
             ) : (
@@ -132,7 +163,7 @@ export default function ResultsPanel({ results, previewUrl, fileName, onReset })
                   <li
                     key={issue.id}
                     className="results-panel__issue-item"
-                    style={{ animationDelay: `${i * 80}ms` }}
+                    style={{ "--stagger": `${i * 80}ms` }}
                   >
                     <IssueCard issue={issue} />
                   </li>
@@ -146,6 +177,7 @@ export default function ResultsPanel({ results, previewUrl, fileName, onReset })
               type="button"
               className="results-panel__btn results-panel__btn--ghost"
               onClick={() => handleExport("json")}
+              disabled={isExporting}
             >
               Download JSON
             </button>
@@ -161,4 +193,6 @@ export default function ResultsPanel({ results, previewUrl, fileName, onReset })
       </div>
     </section>
   );
-}
+});
+
+export default ResultsPanel;

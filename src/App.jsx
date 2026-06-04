@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
 import UploadArea from "./components/UploadArea";
@@ -12,7 +12,9 @@ import "./styles/globals.css";
 export default function App() {
   const [uploadedFile, setUploadedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
-  const { results, isAnalyzing, error, analyze, reset } = useAnalyzer();
+  const [announcement, setAnnouncement] = useState("");
+  const { results, isAnalyzing, error, analyze, reset, clearError } = useAnalyzer();
+  const resultsRef = useRef(null);
 
   useEffect(() => {
     return () => {
@@ -20,15 +22,28 @@ export default function App() {
     };
   }, [previewUrl]);
 
+  useEffect(() => {
+    if (results) {
+      setAnnouncement(
+        `Analysis complete. Layout score ${results.score} out of 100. ${results.issues.length} issue${results.issues.length === 1 ? "" : "s"} found.`
+      );
+      resultsRef.current?.focus();
+    }
+  }, [results]);
+
   const handleFileAccepted = (file) => {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setUploadedFile(file);
     setPreviewUrl(URL.createObjectURL(file));
     reset();
+    setAnnouncement(`${file.name} uploaded. Ready to analyze.`);
   };
 
   const handleAnalyze = () => {
-    if (uploadedFile && !isAnalyzing) analyze(uploadedFile);
+    if (uploadedFile && !isAnalyzing) {
+      setAnnouncement("Analyzing layout. Please wait.");
+      analyze(uploadedFile);
+    }
   };
 
   const handleReset = () => {
@@ -36,14 +51,24 @@ export default function App() {
     setUploadedFile(null);
     setPreviewUrl(null);
     reset();
+    setAnnouncement("Ready for a new upload.");
   };
 
   return (
     <div className="app">
-      <div className="noise-overlay" />
-      <div className="grid-bg" />
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
+
+      <div className="noise-overlay" aria-hidden="true" />
+      <div className="grid-bg" aria-hidden="true" />
+
+      <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+        {announcement}
+      </div>
+
       <Navbar />
-      <main className="main">
+      <main id="main-content" className="main" tabIndex={-1}>
         {!results && (
           <>
             <Hero />
@@ -56,7 +81,15 @@ export default function App() {
             />
             {error && (
               <div className="app__error" role="alert">
-                <span aria-hidden="true">⚠</span> {error}
+                <p className="app__error-text">{error}</p>
+                <button
+                  type="button"
+                  className="app__error-dismiss"
+                  onClick={clearError}
+                  aria-label="Dismiss error"
+                >
+                  ×
+                </button>
               </div>
             )}
             {uploadedFile && (
@@ -66,6 +99,7 @@ export default function App() {
         )}
         {results && (
           <ResultsPanel
+            ref={resultsRef}
             results={results}
             previewUrl={previewUrl}
             fileName={uploadedFile?.name}

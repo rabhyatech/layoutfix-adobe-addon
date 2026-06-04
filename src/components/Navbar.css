@@ -1,7 +1,8 @@
 .navbar {
   position: relative;
   z-index: 10;
-  padding: 20px 24px;
+  padding: var(--space-4) var(--space-5);
+  padding-top: calc(var(--space-4) + env(safe-area-inset-top, 0px));
 }
 
 .navbar__inner {

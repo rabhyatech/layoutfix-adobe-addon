@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { prefersReducedMotion } from "../utils/motion";
 import "./ScoreMeter.css";
 
 const RADIUS = 54;
@@ -17,10 +18,11 @@ export default function ScoreMeter({
   duration = 1400,
 }) {
   const target = Math.min(100, Math.max(0, score));
-  const [display, setDisplay] = useState(animate ? 0 : target);
+  const shouldAnimate = animate && !prefersReducedMotion();
+  const [display, setDisplay] = useState(shouldAnimate ? 0 : target);
 
   useEffect(() => {
-    if (!animate) {
+    if (!shouldAnimate) {
       setDisplay(target);
       return;
     }
@@ -37,14 +39,19 @@ export default function ScoreMeter({
 
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [target, animate, duration]);
+  }, [target, shouldAnimate, duration]);
 
   const offset = CIRCUMFERENCE - (display / 100) * CIRCUMFERENCE;
   const grade =
     target >= 80 ? "Great" : target >= 65 ? "Good" : target >= 50 ? "Fair" : "Needs work";
+  const ariaLabel = `${label}: ${target} out of 100, ${grade}`;
 
   return (
-    <div className={`score-meter score-meter--${size}`}>
+    <div
+      className={`score-meter score-meter--${size}`}
+      role="group"
+      aria-label={ariaLabel}
+    >
       <div className="score-meter__ring-wrap">
         <svg className="score-meter__svg" viewBox="0 0 120 120" aria-hidden="true">
           <circle className="score-meter__track" cx="60" cy="60" r={RADIUS} fill="none" />
@@ -59,10 +66,8 @@ export default function ScoreMeter({
             style={color ? { stroke: color } : undefined}
           />
         </svg>
-        <div className="score-meter__value-wrap">
-          <span className="score-meter__value" aria-live="polite">
-            {display}
-          </span>
+        <div className="score-meter__value-wrap" aria-hidden="true">
+          <span className="score-meter__value">{display}</span>
           {size === "large" && (
             <span className="score-meter__grade">{grade}</span>
           )}

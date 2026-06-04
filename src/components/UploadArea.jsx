@@ -21,18 +21,32 @@ export default function UploadArea({
 }) {
   const inputRef = useRef(null);
   const dragCounter = useRef(0);
+  const errorRef = useRef(null);
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState(null);
+  const [imageLoaded, setImageLoaded] = useState(false);
+
+  useEffect(() => {
+    setImageLoaded(false);
+  }, [previewUrl]);
+
+  useEffect(() => {
+    if (error) errorRef.current?.focus();
+  }, [error]);
 
   const validateAndAccept = useCallback(
     (file) => {
       if (!file) return;
       if (!isAcceptedImage(file)) {
-        setError("Please upload a PNG, JPG, or JPEG image.");
+        setError(
+          "Unsupported file type. Please choose a PNG, JPG, or JPEG image."
+        );
         return;
       }
       if (file.size > MAX_SIZE) {
-        setError("File must be under 10 MB.");
+        setError(
+          "This file exceeds the 10 MB limit. Compress the image or choose a smaller file."
+        );
         return;
       }
       setError(null);
@@ -94,14 +108,27 @@ export default function UploadArea({
 
   if (uploadedFile && previewUrl) {
     return (
-      <section className="upload-area upload-area--preview" id="upload">
+      <section
+        className="upload-area upload-area--preview"
+        id="upload"
+        aria-labelledby="upload-preview-label"
+      >
+        <p id="upload-preview-label" className="sr-only">
+          Preview of {uploadedFile.name}
+        </p>
         <div className="upload-area__preview-wrap">
+          {!imageLoaded && (
+            <div className="upload-area__skeleton" aria-hidden="true">
+              <span className="upload-area__skeleton-shimmer" />
+            </div>
+          )}
           <img
             src={previewUrl}
-            alt="Upload preview"
-            className="upload-area__preview"
+            alt={`Preview of ${uploadedFile.name}`}
+            className={`upload-area__preview${imageLoaded ? " upload-area__preview--loaded" : ""}`}
+            onLoad={() => setImageLoaded(true)}
           />
-          {!isAnalyzing && (
+          {!isAnalyzing && imageLoaded && (
             <div className="upload-area__scan-line" aria-hidden="true" />
           )}
         </div>
@@ -112,6 +139,7 @@ export default function UploadArea({
             className="upload-area__reset"
             onClick={onReset}
             disabled={isAnalyzing}
+            aria-label={`Remove ${uploadedFile.name}`}
           >
             Remove
           </button>
@@ -121,7 +149,7 @@ export default function UploadArea({
   }
 
   return (
-    <section className="upload-area" id="upload">
+    <section className="upload-area" id="upload" aria-labelledby="upload-label">
       <div
         className={`upload-area__dropzone${dragOver ? " upload-area__dropzone--active" : ""}`}
         onClick={() => inputRef.current?.click()}
@@ -131,7 +159,8 @@ export default function UploadArea({
         onDrop={handleDrop}
         role="button"
         tabIndex={0}
-        aria-label="Upload design image. Drag and drop or click to browse."
+        aria-labelledby="upload-label upload-hint"
+        aria-describedby={error ? "upload-error" : "upload-empty"}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
@@ -155,24 +184,45 @@ export default function UploadArea({
             />
           </svg>
         </div>
-        <p className="upload-area__label">
+        <p id="upload-label" className="upload-area__label">
           {dragOver ? "Release to upload" : "Drag & drop your design here"}
         </p>
-        <p className="upload-area__hint">or click to browse · PNG, JPG, JPEG · max 10 MB</p>
+        <p id="upload-hint" className="upload-area__hint">
+          or click to browse · PNG, JPG, JPEG · max 10 MB
+        </p>
         <input
           ref={inputRef}
           type="file"
           accept="image/png,image/jpeg,image/jpg,.png,.jpg,.jpeg"
           className="sr-only"
           onChange={handleChange}
+          aria-hidden="true"
+          tabIndex={-1}
         />
       </div>
       {!uploadedFile && !error && (
-        <p className="upload-area__empty">No file selected yet</p>
+        <div id="upload-empty" className="upload-area__empty">
+          <span className="upload-area__empty-icon" aria-hidden="true">
+            ◻
+          </span>
+          <p className="upload-area__empty-title">No design uploaded</p>
+          <p className="upload-area__empty-text">
+            Drop a screenshot or mockup to get your layout score.
+          </p>
+        </div>
       )}
       {error && (
-        <div className="upload-area__error" role="alert">
-          <span aria-hidden="true">⚠</span> {error}
+        <div
+          id="upload-error"
+          className="upload-area__error"
+          role="alert"
+          ref={errorRef}
+          tabIndex={-1}
+        >
+          <span className="upload-area__error-icon" aria-hidden="true">
+            !
+          </span>
+          <p>{error}</p>
         </div>
       )}
     </section>

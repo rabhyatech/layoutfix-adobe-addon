@@ -17,8 +17,9 @@
 .analyze-btn {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  padding: 14px 36px;
+  gap: var(--space-2);
+  padding: 14px var(--space-6);
+  min-height: 48px;
   border: none;
   border-radius: var(--radius-md);
   background: linear-gradient(135deg, var(--purple-mid), var(--purple-bright));

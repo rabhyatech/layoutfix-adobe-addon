@@ -19,7 +19,7 @@ export default function Hero() {
         Upload a screenshot or design file and get instant feedback on spacing,
         alignment, hierarchy, and contrast.
       </p>
-      <ol className="hero__steps">
+      <ol className="hero__steps" aria-label="How LayoutFix works">
         {STEPS.map((step) => (
           <li key={step.num} className="hero__step">
             <span className="hero__step-num">{step.num}</span>
